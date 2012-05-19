@@ -20,37 +20,77 @@
  * THE SOFTWARE.
  */
 var ans = (function(n) {
-    function Trigon() {}
+    /**
+     * Constructs a new instance of the Trigon class
+     *
+     * @constructor
+     * @this {Trigon}
+     * @param {number} n Number of rows
+     */
+    function Trigon(n) {
+        /**
+         * A jagged array that represents the whole triangle
+         * @private
+         * @type {Array.<Array.<number>>}
+         */
+        this.graph_ = new Array(n);
+        /**
+         * A jagged array that represents the culmulative sum of all numbers in
+         * a row up till (and including) that particular column
+         * @private
+         * @type {Array.<Array.<number>>}
+         */
+        this.row_sum_ = new Array(n);
+        this.init_(n);
+    }
 
-    Trigon.prototype.create = function(n) {
-        var result = [];
+    /**
+     * Initializes numeric representations and row sums
+     * 
+     * @private
+     * @this {Trigon}
+     * @param {number} n Number of rows
+     */
+    Trigon.prototype.init_ = function(n) {
         var t = 0;
         var offset = 1 << 19,
             mod = 1 << 20;
-        for (var r = 1; r <= n; r++) {
-            var row = [];
-            for (var c = 1; c <= r; c++) {
+        for (var r_idx = 0; r_idx < n; r_idx++) {
+            var row = new Array(r_idx + 1),
+                sum = new Array(r_idx + 1);
+            for (var c_idx = 0; c_idx <= r_idx; c_idx++) {
                 t = (615949 * t + 797807) % mod;
-                row.push(t - offset);
+                row[c_idx] = (t - offset);
+                sum[c_idx] = row[c_idx];
+                if (c_idx > 0) {
+                    sum[c_idx] += sum[c_idx - 1];
+                }
             }
-            result.push(row);
+            this.graph_[r_idx] = row;
+            this.row_sum_[r_idx] = sum;
         }
-        return result;
     };
 
-    Trigon.prototype.min = function(graph, row, col) {
-        if (row < col || row >= graph.length) {
-            return Number.POSITIVE_INFINITY;
+    /**
+     * Returns the minimum sum among all sub-triangles that contain the given
+     * row and column indices as the starting point
+     *
+     * @this {Trigon}
+     * @param {number} row The starting row index
+     * @param {number} col The starting column index
+     * @returns {number}
+     */
+    Trigon.prototype.min = function(row, col) {
+        var result = Number.POSITIVE_INFINITY;
+        if (row < col || row >= this.graph_.length) {
+            return result;
         }
-        var result = Number.POSITIVE_INFINITY,
-            running_total = 0;
-        for (var r = row, r_stop = graph.length; r < r_stop; r++) {
-            var list = graph[r];
-            for (var c = col, c_stop = col + r - row; c <= c_stop; c++) {
-                running_total += list[c];
-            }
-            if (running_total < result) {
-                result = running_total;
+        var total = 0;
+        for (var r = row, r_stop = this.row_sum_.length; r < r_stop; r++) {
+            var sum = this.row_sum_[r];
+            total += sum[col + r - row] - sum[col];
+            if (total < result) {
+                result = total;
             }
         }
         return result;
@@ -58,23 +98,22 @@ var ans = (function(n) {
 
     Trigon.prototype.key = function(x, y) {
         return x + ":" + y;
+    };
+
+    var trigon = new Trigon(n);
+    var min_sum = {};
+    var r = n - 1, c;
+
+    for (c = 0; c <= r; c++) {
+        min_sum[trigon.key(r, c)] = trigon.min(r, c);
     }
 
-    var trigon = new Trigon();
-    var graph = trigon.create(n);
-    var min_sum = {};
-    var r = n - 1;
-
-    graph[r].forEach(function(val, idx) {
-        min_sum[trigon.key(r, idx)] = val;
-    });
-
     for (r = n - 2; r >= 0; r--) {
-        for (var c = 0; c <= r; c++) {
-            var self = trigon.min(graph, r, c);
-            var lt = min_sum[trigon.key(r + 1, c)];
-            var rt = min_sum[trigon.key(r + 1, c + 1)];
-            min_sum[trigon.key(r, c)] = Math.min(self, lt, rt);
+        for (c = 0; c <= r; c++) {
+            var sf = trigon.min(r, c),
+                lt = min_sum[trigon.key(r + 1, c)],
+                rt = min_sum[trigon.key(r + 1, c + 1)];
+            min_sum[trigon.key(r, c)] = Math.min(sf, lt, rt);
         }
     }
 
