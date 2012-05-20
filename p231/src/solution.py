@@ -19,32 +19,42 @@ FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
 COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
 IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-'''
-def sieve_sopfr(upper_bound):
-    sieve = [0] * upper_bound
-    for x in range(4, upper_bound, 2):
-        idx = x
-        while x % 2 == 0:
-            sieve[idx] += 2
-            x = x // 2
-    for x in range(3, upper_bound, 2):
-        if sieve[x] > 0:
-            continue
-        for y in range(2 * x, upper_bound, x):
-            idx = y
-            while y % x == 0:
-                sieve[idx] += x
-                y = y // x
-    for x in range(2, upper_bound):
-        if sieve[x] == 0:
-            sieve[x] = x;
-    return sieve
 
-def sopfr(n, m):
-    sieve = sieve_sopfr(n + 1)
-    result = sum(sieve[-m:]) - sum(sieve[1:m + 1])
+References:
+
+1. http://en.wikipedia.org/wiki/Factorial#Number_theory
+'''
+import math
+
+def sieve_primes(upper_bound):
+    sieve = [True] * upper_bound
+    sqrt_ub = math.ceil(math.sqrt(upper_bound))
+    for x in range(3, sqrt_ub, 2):
+        if sieve[x] == False:
+            continue
+        for y in range(x << 1, upper_bound, x):
+            sieve[y] = False
+    result = [x for x in range(3, upper_bound, 2) if sieve[x]]
+    if upper_bound > 1:
+        result.append(2)
+    return result
+
+def factorial_sopfr(n, primes):
+    result = 0
+    for p in primes:
+        m = p
+        while m <= n:
+            result += math.floor(n / m) * p
+            m *= p
+    return result
+
+def binomial_sopfr(n, m):
+    primes = sieve_primes(n + 1)
+    result = factorial_sopfr(n, primes)
+    result -= factorial_sopfr(m, primes)
+    result -= factorial_sopfr(n - m, primes)
     return result
 
 if __name__ == '__main__':
-    ans = sopfr(20000000, 5000000)
+    ans = binomial_sopfr(20000000, 5000000)
     print(ans)
