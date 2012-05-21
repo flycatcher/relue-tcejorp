@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Project Euler Problem 19</title>
+</head>
+<body>
+	Answer is
+	<span id="ans"></span>
+	<script type="text/javascript">
+        var result = (function() {
+            var count = 0;
+
+            for (var year = 1901; year <= 2000; year++) {
+                for (var month = 0; month <= 11; month++) {
+                    var date = new Date(year, month, 1);
+                    if (date.getDay() === 0) {
+                        count += 1;
+                    }
+                }
+            }
+
+            return count;
+        })();
+        document.getElementById("ans").innerHTML = result;
+    </script>
+</body>
+</html>
