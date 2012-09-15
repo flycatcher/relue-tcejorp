@@ -26,9 +26,11 @@
      * Data collection of a simple binary search tree
      * 
      * @constructor
+     * @param {function(object,object):number}
+     *            comparator
      */
     function BinarySearchTree(comparator) {
-        this.root_ = undefined;
+        this.root_ = null;
         this.size_ = 0;
         this.comparator_ = comparator;
     }
@@ -36,10 +38,94 @@
     BinarySearchTree.prototype = {
         constructor : BinarySearchTree,
         find : function(v) {
+            var node = this.root_, result = false;
+            while (node && !result) {
+                var c = this.comparator_(v, node.value());
+                if (c === 0) {
+                    result = true;
+                } else if (c < 0) {
+                    node = node.left();
+                } else {
+                    node = node.right();
+                }
+            }
+            return result;
         },
         insert : function(v) {
+            var leaf = new BinaryTreeNode(v);
+            if (!this.root_) {
+                this.root_ = leaf;
+                this.size_ += 1;
+            } else {
+                var node = this.root_;
+                var c = this.comparator_(v, node.value());
+                while ((c < 0 && node.left()) || (c > 0 && node.right())) {
+                    node = (c < 0)
+                        ? node.left()
+                        : node.right();
+                    c = this.comparator_(v, node.value());
+                }
+                if (c < 0 && !node.left()) {
+                    node.left(leaf);
+                    leaf.parent(node);
+                    this.size_ += 1;
+                } else if (c > 0 && !node.right()) {
+                    node.right(leaf);
+                    leaf.parent(node);
+                    this.size_ += 1;
+                }
+            }
         },
         remove : function(v) {
+            var node = this.root_, found = false;
+            while (node && !found) {
+                var c = this.comparator_(v, node.value());
+                if (c === 0) {
+                    found = true;
+                } else if (c < 0) {
+                    node = node.left();
+                } else {
+                    node = node.right();
+                }
+            }
+            if (found) {
+                var parent = node.parent(), replacement = null;
+
+                if (node.left()) {
+                    replacement = node.left();
+                    while (replacement && replacement.right()) {
+                        replacement = replacement.right();
+                    }
+                    if (replacement !== node.left()) {
+                        node.value(replacement.value());
+                        replacement.parent().right(replacement.left());
+                        if (replacement.left()) {
+                            replacement.left().parent(replacement.parent());
+                        }
+                    } else {
+                        replacement.right(node.right());
+                        replacement.parent(parent);
+                        if (node.right()) {
+                            node.right().parent(replacement);
+                        }
+                    }
+                } else if (node.right()) {
+                    replacement = node.right();
+                    replacement.parent(parent);
+                }
+
+                if (replacement === node.right() || replacement === node.left()) {
+                    if (!parent) {
+                        this.root_ = replacement;
+                    } else if (parent.left() === node) {
+                        parent.left(replacement);
+                    } else if (parent.right() === node) {
+                        parent.right(replacement);
+                    }
+                }
+
+                this.size_ -= 1;
+            }
         },
         size : function() {
             return this.size_;
@@ -56,9 +142,24 @@
             var node = this.root_, result = undefined;
             while (node) {
                 result = node.value();
-                node - node.right();
+                node = node.right();
             }
             return result;
+        },
+        print : function() {
+            var rprint = function(node) {
+                if (node) {
+                    rprint(node.left());
+                    node.print();
+                    rprint(node.right());
+                }
+            };
+
+            if (this.root_) {
+                rprint(this.root_);
+            } else {
+                console.log("Empty tree");
+            }
         }
     };
 

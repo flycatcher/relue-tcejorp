@@ -30,7 +30,7 @@
      *            p2 The second end point
      */
     function Segment(p1, p2) {
-        if (p1.getY() >= p2.getY()) {
+        if (p1.y() >= p2.y()) {
             this.upper_ = p1;
             this.lower_ = p2;
         } else {
@@ -41,10 +41,10 @@
 
     Segment.prototype = {
         constructor : Segment,
-        getUpper : function() {
+        upper : function() {
             return this.upper_;
         },
-        getLower : function() {
+        lower : function() {
             return this.lower_;
         },
         toString : function() {

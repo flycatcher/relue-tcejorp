@@ -20,15 +20,20 @@
  * SOFTWARE.
  */
 (function() {
+    var util = require("util");
+
     /**
      * Data container representing a node in a binary tree
      * 
      * @constructor
+     * @param {object}
+     *            value
      */
-    function BinaryTreeNode() {
-        this.value_ = undefined;
-        this.left_ = undefined;
-        this.right_ = undefined;
+    function BinaryTreeNode(value) {
+        this.value_ = value;
+        this.left_ = null;
+        this.right_ = null;
+        this.parent_ = null;
     }
 
     BinaryTreeNode.prototype = {
@@ -40,16 +45,31 @@
             return this.value_;
         },
         left : function(node) {
-            if (node !== undefined && node instanceof BinaryTreeNode) {
+            if (node === null || node instanceof BinaryTreeNode) {
                 this.left_ = node;
             }
             return this.left_;
         },
         right : function(node) {
-            if (node !== undefined && node instanceof BinaryTreeNode) {
+            if (node === null || node instanceof BinaryTreeNode) {
                 this.right_ = node;
             }
             return this.right_;
+        },
+        parent : function(node) {
+            if (node === null || node instanceof BinaryTreeNode) {
+                this.parent_ = node;
+            }
+            return this.parent_;
+        },
+        print : function() {
+            console.log(util.format("(%s -> %s, %s, %s)", this.value_, this.parent()
+                ? this.parent().value()
+                : "null", this.left()
+                ? this.left().value()
+                : "null", this.right()
+                ? this.right().value()
+                : "null"));
         }
     };
 
