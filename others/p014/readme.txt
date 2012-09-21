@@ -1,0 +1,1 @@
+Read a string such that the words are read in reversed order.
